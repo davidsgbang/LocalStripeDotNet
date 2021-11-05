@@ -11,4 +11,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.2.3" />
     <PackageReference Include="Bogus" Version="33.1.1" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Webhooks" />
+  </ItemGroup>
 </Project>

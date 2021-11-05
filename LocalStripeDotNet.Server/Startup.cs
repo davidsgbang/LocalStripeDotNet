@@ -28,6 +28,7 @@ namespace LocalStripeDotNet.Server
             services.AddSingleton<IStripeRepository<IssuingCardholder>, InMemoryIssuingCardholderRepository>();
             services.AddSingleton<IStripeRepository<IssuingCard>, InMemoryIssuingCardRepository>();
             services.AddSingleton<IssuingCardGenerator>();
+            services.AddSingleton<IssuingCardholderGenerator>();
             services.AddControllers();
             services.AddMvc()
                 .AddJsonOptions(opts =>

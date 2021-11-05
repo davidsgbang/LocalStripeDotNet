@@ -1,32 +1,56 @@
+using System;
+using System.Collections.Generic;
 using Stripe.Issuing;
 
 namespace LocalStripeDotNet.Server.Repositories
 {
     public class InMemoryIssuingCardholderRepository : IStripeRepository<Cardholder>
     {
-        void IStripeRepository<Cardholder>.Delete(string id)
+        private readonly Dictionary<string, Cardholder> repository;
+
+        public InMemoryIssuingCardholderRepository()
         {
-            throw new System.NotImplementedException();
+            this.repository = new Dictionary<string, Cardholder>();
+        }
+        
+        public bool TryGet(string id, out Cardholder record)
+        {
+            return this.repository.TryGetValue(id, out record);
         }
 
-        void IStripeRepository<Cardholder>.Flush()
+        public void Insert(Cardholder record)
         {
-            throw new System.NotImplementedException();
+            if (!this.repository.TryAdd(record.Id, record))
+            {
+                throw new Exception($"Cannot add IssuingCardholder {record.Id}");
+            }
         }
 
-        void IStripeRepository<Cardholder>.Insert(Cardholder record)
+        public void Delete(string id)
         {
-            throw new System.NotImplementedException();
+            if (!this.repository.ContainsKey(id))
+            {
+                throw new ArgumentException($"IssuingCard {id} cannot be updated, since it does not exist");
+            }
+
+            this.repository.Remove(id);
         }
 
-        bool IStripeRepository<Cardholder>.TryGet(string id, out Cardholder record)
+        public Cardholder Update(Cardholder record)
         {
-            throw new System.NotImplementedException();
+            if (!this.repository.ContainsKey(record.Id))
+            {
+                throw new ArgumentException($"IssuingCard {record.Id} cannot be updated, since it does not exist");
+            }
+            
+            this.repository[record.Id] = record;
+
+            return this.repository[record.Id];
         }
 
-        Cardholder IStripeRepository<Cardholder>.Update(Cardholder record)
+        public void Flush()
         {
-            throw new System.NotImplementedException();
+            this.repository.Clear();
         }
     }
 }
