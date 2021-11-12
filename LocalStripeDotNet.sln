@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalStripeDotNet.Server", "LocalStripeDotNet.Server\LocalStripeDotNet.Server.csproj", "{428A342D-7C23-4102-AAE2-97F837D33C09}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication", "WebApplication\WebApplication.csproj", "{8F2D15CA-3606-46D6-852F-16CC93B498F6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocalStripeDotNet.Tester", "LocalStripeDotNet.Tester\LocalStripeDotNet.Tester.csproj", "{ED8CB0E1-154B-46BA-9052-E4B2D78F9E40}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,9 +14,9 @@ Global
 		{428A342D-7C23-4102-AAE2-97F837D33C09}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{428A342D-7C23-4102-AAE2-97F837D33C09}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{428A342D-7C23-4102-AAE2-97F837D33C09}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8F2D15CA-3606-46D6-852F-16CC93B498F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F2D15CA-3606-46D6-852F-16CC93B498F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F2D15CA-3606-46D6-852F-16CC93B498F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F2D15CA-3606-46D6-852F-16CC93B498F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED8CB0E1-154B-46BA-9052-E4B2D78F9E40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED8CB0E1-154B-46BA-9052-E4B2D78F9E40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED8CB0E1-154B-46BA-9052-E4B2D78F9E40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED8CB0E1-154B-46BA-9052-E4B2D78F9E40}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

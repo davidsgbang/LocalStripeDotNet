@@ -1,3 +1,5 @@
+using Stripe;
+
 namespace LocalStripeDotNet.Server.Repositories
 {
     public interface IStripeRepository<T>

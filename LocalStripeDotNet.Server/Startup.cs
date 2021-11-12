@@ -1,13 +1,16 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
+using LocalStripeDotNet.Server.Facades;
 using LocalStripeDotNet.Server.Generators;
 using LocalStripeDotNet.Server.Repositories;
+using LocalStripeDotNet.Server.Webhooks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-
+using Newtonsoft.Json.Serialization;
 using IssuingCard = Stripe.Issuing.Card;
 using IssuingCardholder = Stripe.Issuing.Cardholder;
 
@@ -29,7 +32,18 @@ namespace LocalStripeDotNet.Server
             services.AddSingleton<IStripeRepository<IssuingCard>, InMemoryIssuingCardRepository>();
             services.AddSingleton<IssuingCardGenerator>();
             services.AddSingleton<IssuingCardholderGenerator>();
-            services.AddControllers();
+
+            var webhookTarget = this.Configuration.GetValue<string>("webhookTarget") ?? "https://localhost:5005";
+            
+            services.AddSingleton<IWebhookInitiator>(new WebhookInitiator(webhookTarget));
+
+            services.AddSingleton<IssuingCardholderFacade>();
+            
+            services.AddControllers()
+                .AddJsonOptions(options => { 
+                    options.JsonSerializerOptions.PropertyNamingPolicy = 
+                        JsonNamingPolicy.CamelCase;
+                });
             services.AddMvc()
                 .AddJsonOptions(opts =>
                 {

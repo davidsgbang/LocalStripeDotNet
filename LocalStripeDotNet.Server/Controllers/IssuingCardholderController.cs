@@ -1,8 +1,9 @@
+using System.Threading.Tasks;
+using LocalStripeDotNet.Server.Facades;
 using LocalStripeDotNet.Server.Generators;
 using LocalStripeDotNet.Server.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Stripe.Issuing;
-using IssuingCard = Stripe.Issuing.Card;
 using IssuingCardholder = Stripe.Issuing.Cardholder;
 
 namespace LocalStripeDotNet.Server.Controllers
@@ -12,14 +13,14 @@ namespace LocalStripeDotNet.Server.Controllers
     public class IssuingCardholderController : ControllerBase
     {
         private readonly IStripeRepository<IssuingCardholder> issuingCardholderRepository;
-        private readonly IssuingCardholderGenerator issuingCardholderGenerator;
+        private readonly IssuingCardholderFacade issuingCardholderFacade;
 
         public IssuingCardholderController(
             IStripeRepository<IssuingCardholder> issuingCardholderRepository,
-            IssuingCardholderGenerator issuingCardholderGenerator)
+            IssuingCardholderFacade issuingCardholderFacade)
         {
             this.issuingCardholderRepository = issuingCardholderRepository;
-            this.issuingCardholderGenerator = issuingCardholderGenerator;
+            this.issuingCardholderFacade = issuingCardholderFacade;
         }
         
         [HttpGet]
@@ -35,11 +36,11 @@ namespace LocalStripeDotNet.Server.Controllers
         }
 
         [HttpPost]
-        public ActionResult<IssuingCardholder> CreateIssuingCardholder(
+        public async Task<ActionResult<Cardholder>> CreateIssuingCardholder(
             [FromBody] CardholderCreateOptions cardholderCreateOptions)
         {
-            var cardholder = issuingCardholderGenerator.Generate(cardholderCreateOptions);
-            this.issuingCardholderRepository.Insert(cardholder);
+            var cardholder = 
+                await this.issuingCardholderFacade.CreateIssuingCardholder(cardholderCreateOptions);
 
             return this.Ok(cardholder);
         }

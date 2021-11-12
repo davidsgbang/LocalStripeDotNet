@@ -1,5 +1,6 @@
 using LocalStripeDotNet.Server.Generators;
 using LocalStripeDotNet.Server.Repositories;
+using LocalStripeDotNet.Server.Webhooks;
 using Microsoft.AspNetCore.Mvc;
 using Stripe.Issuing;
 using CardCreateOptions = Stripe.Issuing.CardCreateOptions;
@@ -14,15 +15,18 @@ namespace LocalStripeDotNet.Server.Controllers
     {
         private readonly IStripeRepository<IssuingCard> issuingCardRepository;
         private readonly IStripeRepository<IssuingCardholder> issuingCardholderRepository;
+        private readonly IWebhookInitiator webhookInitiator;
         private readonly IssuingCardGenerator issuingCardGenerator;
 
         public IssuingCardController(
             IStripeRepository<IssuingCard> issuingCardRepository,
             IStripeRepository<IssuingCardholder> issuingCardholderRepository,
+            IWebhookInitiator webhookInitiator,
             IssuingCardGenerator issuingCardGenerator)
         {
             this.issuingCardRepository = issuingCardRepository;
             this.issuingCardholderRepository = issuingCardholderRepository;
+            this.webhookInitiator = webhookInitiator;
             this.issuingCardGenerator = issuingCardGenerator;
         }
         
