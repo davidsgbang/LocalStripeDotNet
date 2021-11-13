@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using LocalStripeDotNet.Server.Generators;
 using LocalStripeDotNet.Server.Repositories;
 using LocalStripeDotNet.Server.Webhooks;
-using Stripe;
 using Stripe.Issuing;
 using IssuingCardholder = Stripe.Issuing.Cardholder;
 
@@ -13,21 +12,18 @@ namespace LocalStripeDotNet.Server.Facades
     {
         private readonly IStripeRepository<IssuingCardholder> issuingCardholderRepository;
         private readonly IWebhookInitiator webhookInitiator;
-        private readonly IssuingCardholderGenerator issuingCardholderGenerator;
 
         public IssuingCardholderFacade(
             IStripeRepository<IssuingCardholder> issuingCardholderRepository,
-            IWebhookInitiator webhookInitiator,
-            IssuingCardholderGenerator issuingCardholderGenerator)
+            IWebhookInitiator webhookInitiator)
         {
             this.issuingCardholderRepository = issuingCardholderRepository;
             this.webhookInitiator = webhookInitiator;
-            this.issuingCardholderGenerator = issuingCardholderGenerator;
         }
 
         public async Task<IssuingCardholder> CreateIssuingCardholder(CardholderCreateOptions cardholderCreateOptions)
         {
-            var cardholder = issuingCardholderGenerator.Generate(cardholderCreateOptions);
+            var cardholder = IssuingCardholderGenerator.Generate(cardholderCreateOptions);
             this.issuingCardholderRepository.Insert(cardholder);
 
             var webhookEvent = GenerateWebhookEvent(cardholder, Stripe.Events.IssuingCardholderCreated);
@@ -35,7 +31,33 @@ namespace LocalStripeDotNet.Server.Facades
 
             return cardholder;
         }
+        
+        public async Task<IssuingCardholder> UpdateIssuingCardholder(string id, CardholderUpdateOptions cardholderUpdateOptions)
+        {
+            if (!this.issuingCardholderRepository.TryGet(id, out var cardholder))
+            {
+                throw new ArgumentException($"Cannot update non-existing Cardholder {id}");
+            }
 
+            var updatedCardholder = cardholder.ToUpdatedCardholder(cardholderUpdateOptions);
+            this.issuingCardholderRepository.Update(updatedCardholder);
+
+            var webhookEvent = GenerateWebhookEvent(cardholder, Stripe.Events.IssuingCardholderUpdated);
+            await this.webhookInitiator.InitiateWebhook(webhookEvent);
+
+            return cardholder;
+        }
+
+        public IssuingCardholder GetIssuingCardholder(string id)
+        {
+            if (!this.issuingCardholderRepository.TryGet(id, out var cardholder))
+            {
+                throw new ArgumentException($"Cannot find Cardholder {id}");
+            }
+
+            return cardholder;
+        }
+        
         private static StripeWebhookEvent GenerateWebhookEvent(IssuingCardholder cardholder, string eventType)
         {
             return new StripeWebhookEvent

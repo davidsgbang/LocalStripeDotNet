@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Bogus;
@@ -27,11 +28,11 @@ namespace LocalStripeDotNet.Server.Webhooks
 
         public async Task<HttpResponseMessage> InitiateWebhook(StripeWebhookEvent webhookEvent)
         {
-            Console.WriteLine($"Sending {webhookEvent.Type} to {this.targetUri}");
-
             string eventId = StripeIdPrefixes.GetPrefix(nameof(Event)) + this.randomizer.AlphaNumeric(16);
             webhookEvent.Id = eventId;
             
+            Console.WriteLine($"Sending {webhookEvent.Type}:{eventId} to {this.targetUri}");
+
             // Serialize our concrete class into a JSON String
             var stringPayload = JsonConvert.SerializeObject(
                 webhookEvent, 
@@ -43,7 +44,11 @@ namespace LocalStripeDotNet.Server.Webhooks
                     },
                     Formatting = Formatting.Indented
                 });
-            return await this.targetClient.PostAsync(this.targetUri, new StringContent(stringPayload));
+            
+            var message = await this.targetClient.PostAsync(
+                this.targetUri, 
+                new StringContent(stringPayload, Encoding.UTF8, "application/json"));
+            return message;
         }
     }
 }

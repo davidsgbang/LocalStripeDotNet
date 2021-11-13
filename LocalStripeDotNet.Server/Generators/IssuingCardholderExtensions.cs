@@ -22,7 +22,9 @@ namespace LocalStripeDotNet.Server.Generators
             };
         }
 
-        public static Cardholder ToUpdatedCardholder(this Cardholder cardholder, CardholderUpdateOptions options)
+        public static Cardholder ToUpdatedCardholder(
+            this Cardholder cardholder, 
+            CardholderUpdateOptions options)
         {
             if (options.Billing?.Address != null)
             {

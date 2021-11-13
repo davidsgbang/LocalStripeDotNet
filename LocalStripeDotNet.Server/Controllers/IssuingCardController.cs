@@ -1,77 +1,81 @@
-using LocalStripeDotNet.Server.Generators;
-using LocalStripeDotNet.Server.Repositories;
-using LocalStripeDotNet.Server.Webhooks;
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using LocalStripeDotNet.Server.Facades;
 using Microsoft.AspNetCore.Mvc;
-using Stripe.Issuing;
+using Newtonsoft.Json;
+using Stripe;
 using CardCreateOptions = Stripe.Issuing.CardCreateOptions;
+using CardUpdateOptions = Stripe.Issuing.CardUpdateOptions;
 using IssuingCard = Stripe.Issuing.Card;
 using IssuingCardholder = Stripe.Issuing.Cardholder;
 
 namespace LocalStripeDotNet.Server.Controllers
 {
     [ApiController]
-    [Route("issuing/cards")]
+    [Route("v1/issuing/cards")]
+    [Consumes("application/x-www-form-urlencoded")]
     public class IssuingCardController : ControllerBase
     {
-        private readonly IStripeRepository<IssuingCard> issuingCardRepository;
-        private readonly IStripeRepository<IssuingCardholder> issuingCardholderRepository;
-        private readonly IWebhookInitiator webhookInitiator;
-        private readonly IssuingCardGenerator issuingCardGenerator;
-
-        public IssuingCardController(
-            IStripeRepository<IssuingCard> issuingCardRepository,
-            IStripeRepository<IssuingCardholder> issuingCardholderRepository,
-            IWebhookInitiator webhookInitiator,
-            IssuingCardGenerator issuingCardGenerator)
+        private readonly IssuingCardFacade issuingCardFacade;
+        
+        public IssuingCardController(IssuingCardFacade issuingCardFacade)
         {
-            this.issuingCardRepository = issuingCardRepository;
-            this.issuingCardholderRepository = issuingCardholderRepository;
-            this.webhookInitiator = webhookInitiator;
-            this.issuingCardGenerator = issuingCardGenerator;
+            this.issuingCardFacade = issuingCardFacade;
         }
         
         [HttpGet]
         [Route("{id}")]
         public ActionResult<IssuingCard> GetIssuingCard(string id)
         {
-            if (!this.issuingCardRepository.TryGet(id, out var card))
+            try
+            {
+                var card = this.issuingCardFacade.GetIssuingCard(id);
+                return this.Ok(card);
+            }
+            catch (ArgumentException)
             {
                 return this.NotFound();
             }
-
-            return card;
         }
 
         [HttpPost]
-        public ActionResult<IssuingCard> CreateIssuingCard(
-            [FromBody] CardCreateOptions cardCreateOptions)
+        public async Task<StripeResponse> CreateIssuingCard(
+            [FromForm] CardCreateOptions cardCreateOptions)
         {
-            if (!this.issuingCardholderRepository.TryGet(cardCreateOptions.Cardholder, out var cardholder)) {
-                return this.BadRequest();
+            try
+            {
+                var card = await this.issuingCardFacade.CreateIssuingCard(cardCreateOptions);
+                return new StripeResponse(
+                    HttpStatusCode.OK, 
+                    new HttpResponseMessage().Headers, 
+                    JsonConvert.SerializeObject(card));
             }
-            
-            var generatedCard = this.issuingCardGenerator.Generate(cardCreateOptions, cardholder);
-
-            this.issuingCardRepository.Insert(generatedCard);
-
-            return this.Ok(generatedCard);
+            catch (Exception ex)
+            {
+                return new StripeResponse(
+                    HttpStatusCode.BadRequest,
+                    new HttpResponseMessage().Headers, 
+                    null);
+            }
         }
         
         [HttpPost]
         [Route("{id}")]
-        public ActionResult<IssuingCard> UpdateIssuingCard(
+        public async Task<ActionResult<IssuingCard>> UpdateIssuingCard(
             string id,
-            [FromBody] CardUpdateOptions cardCreateOptions)
+            [FromForm] CardUpdateOptions cardUpdateOptions)
         {
-            if (!this.issuingCardRepository.TryGet(id, out var card)) {
-                return this.BadRequest();
+            try
+            {
+                var updatedCard = await this.issuingCardFacade.UpdateIssuingCard(id, cardUpdateOptions);
+                return this.Ok(updatedCard);
             }
-
-            var updatedCard = card.ToUpdatedCardholder(cardCreateOptions);
-
-            this.issuingCardRepository.Update(updatedCard);
-
-            return this.Ok(updatedCard);
+            catch (Exception ex)
+            {
+                return this.BadRequest(ex.Message);
+            }
         }
     }
 }

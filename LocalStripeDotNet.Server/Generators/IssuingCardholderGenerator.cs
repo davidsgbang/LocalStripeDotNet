@@ -8,8 +8,7 @@ using IssuingCardholder = Stripe.Issuing.Cardholder;
 namespace LocalStripeDotNet.Server.Generators
 {
     public class IssuingCardholderGenerator {
-
-        public IssuingCardholder Generate(CardholderCreateOptions cardholderCreateOptions)
+        public static IssuingCardholder Generate(CardholderCreateOptions cardholderCreateOptions)
         {
             var issuingCardholderRule =
                 new Faker<IssuingCardholder>()
@@ -25,7 +24,8 @@ namespace LocalStripeDotNet.Server.Generators
                     .RuleFor(o => o.Email, f => cardholderCreateOptions.Email ?? f.Internet.Email())
                     .RuleFor(o => o.PhoneNumber, f => cardholderCreateOptions.PhoneNumber ?? f.Phone.PhoneNumber())
                     .RuleFor(o => o.Livemode, f => false)
-                    .RuleFor(o => o.Metadata, f => cardholderCreateOptions.Metadata ?? new Dictionary<string, string>());
+                    .RuleFor(o => o.Metadata, f => cardholderCreateOptions.Metadata ?? new Dictionary<string, string>())
+                    .RuleFor(o => o.Created, DateTime.UtcNow);
 
             return issuingCardholderRule.Generate();
         }   

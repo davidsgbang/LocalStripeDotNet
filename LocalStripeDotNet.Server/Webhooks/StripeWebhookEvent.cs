@@ -1,7 +1,6 @@
 using System;
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
-using Stripe;
+using Stripe.Infrastructure;
 
 namespace LocalStripeDotNet.Server.Webhooks
 {
@@ -15,9 +14,10 @@ namespace LocalStripeDotNet.Server.Webhooks
         
         public string Type { get; set; }
         
-        [JsonPropertyName("api_version")]
+        [JsonProperty("api_version")]
         public string ApiVersion { get; set; }
         
+        [JsonConverter(typeof(UnixDateTimeConverter))]
         public DateTime Created { get; set; }
         
         public bool Livemode { get; set; }
@@ -27,10 +27,10 @@ namespace LocalStripeDotNet.Server.Webhooks
     {
         public dynamic? Object { get; set; }
         
-        [JsonPropertyName("previous_attributes")]
+        [JsonProperty("previous_attributes")]
         public dynamic? PreviousAttributes { get; set; }
         
-        [JsonPropertyName("raw_object")]
+        [JsonProperty("raw_object")]
         public dynamic? RawObject { get; set; }
     }
     

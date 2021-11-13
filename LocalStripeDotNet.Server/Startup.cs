@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using LocalStripeDotNet.Server.Facades;
 using LocalStripeDotNet.Server.Generators;
 using LocalStripeDotNet.Server.Repositories;
+using LocalStripeDotNet.Server.Repositories.InMemory;
 using LocalStripeDotNet.Server.Webhooks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,9 +11,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using Stripe.Infrastructure;
 using IssuingCard = Stripe.Issuing.Card;
 using IssuingCardholder = Stripe.Issuing.Cardholder;
+using UnixDateTimeConverter = Stripe.Infrastructure.UnixDateTimeConverter;
 
 namespace LocalStripeDotNet.Server
 {
@@ -30,14 +34,13 @@ namespace LocalStripeDotNet.Server
         {
             services.AddSingleton<IStripeRepository<IssuingCardholder>, InMemoryIssuingCardholderRepository>();
             services.AddSingleton<IStripeRepository<IssuingCard>, InMemoryIssuingCardRepository>();
-            services.AddSingleton<IssuingCardGenerator>();
-            services.AddSingleton<IssuingCardholderGenerator>();
 
             var webhookTarget = this.Configuration.GetValue<string>("webhookTarget") ?? "https://localhost:5005";
             
             services.AddSingleton<IWebhookInitiator>(new WebhookInitiator(webhookTarget));
 
             services.AddSingleton<IssuingCardholderFacade>();
+            services.AddSingleton<IssuingCardFacade>();
             
             services.AddControllers()
                 .AddJsonOptions(options => { 
@@ -45,15 +48,16 @@ namespace LocalStripeDotNet.Server
                         JsonNamingPolicy.CamelCase;
                 });
             services.AddMvc()
-                .AddJsonOptions(opts =>
+                .AddNewtonsoftJson(opts =>
                 {
-                    opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    opts.SerializerSettings.Converters.Add(new StringEnumConverter());
+                    opts.SerializerSettings.Converters.Add(new UnixDateTimeConverter());
                 });
             
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "LocalStripe.NET V1", Version = "v1" });
             });
         }
 
@@ -72,7 +76,7 @@ namespace LocalStripeDotNet.Server
             // specifying the Swagger JSON endpoint.
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); 
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "LocalStripe.NET V1"); 
             });
             app.UseHttpsRedirection();
             app.UseRouting();

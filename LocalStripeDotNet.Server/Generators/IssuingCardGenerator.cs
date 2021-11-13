@@ -11,15 +11,7 @@ namespace LocalStripeDotNet.Server.Generators
 {
     public class IssuingCardGenerator
     {
-        private readonly IStripeRepository<IssuingCardholder> issuingCardholderRepository;
-
-        public IssuingCardGenerator(
-            IStripeRepository<IssuingCardholder> issuingCardholderRepository)
-        {
-            this.issuingCardholderRepository = issuingCardholderRepository;
-        }
-        
-        public IssuingCard Generate(
+        public static IssuingCard Generate(
             CardCreateOptions cardCreateOptions,
             IssuingCardholder cardholder)
         {

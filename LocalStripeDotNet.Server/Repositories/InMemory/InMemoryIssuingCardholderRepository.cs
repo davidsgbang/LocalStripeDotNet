@@ -2,27 +2,27 @@ using System;
 using System.Collections.Generic;
 using Stripe.Issuing;
 
-namespace LocalStripeDotNet.Server.Repositories
+namespace LocalStripeDotNet.Server.Repositories.InMemory
 {
-    public class InMemoryIssuingCardRepository : IStripeRepository<Card>
+    public class InMemoryIssuingCardholderRepository : IStripeRepository<Cardholder>
     {
-        private readonly Dictionary<string, Card> repository;
+        private readonly Dictionary<string, Cardholder> repository;
 
-        public InMemoryIssuingCardRepository()
+        public InMemoryIssuingCardholderRepository()
         {
-            this.repository = new Dictionary<string, Card>();
+            this.repository = new Dictionary<string, Cardholder>();
         }
         
-        public bool TryGet(string id, out Card record)
+        public bool TryGet(string id, out Cardholder record)
         {
             return this.repository.TryGetValue(id, out record);
         }
 
-        public void Insert(Card record)
+        public void Insert(Cardholder record)
         {
             if (!this.repository.TryAdd(record.Id, record))
             {
-                throw new Exception($"Cannot add IssuingCard {record.Id}");
+                throw new Exception($"Cannot add IssuingCardholder {record.Id}");
             }
         }
 
@@ -36,7 +36,7 @@ namespace LocalStripeDotNet.Server.Repositories
             this.repository.Remove(id);
         }
 
-        public Card Update(Card record)
+        public Cardholder Update(Cardholder record)
         {
             if (!this.repository.ContainsKey(record.Id))
             {

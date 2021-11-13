@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using LocalStripeDotNet.Server.Facades;
 using LocalStripeDotNet.Server.Generators;
@@ -9,35 +10,35 @@ using IssuingCardholder = Stripe.Issuing.Cardholder;
 namespace LocalStripeDotNet.Server.Controllers
 {
     [ApiController]
-    [Route("issuing/cardholders")]
+    [Route("v1/issuing/cardholders")]
+    [Consumes("application/x-www-form-urlencoded")]
     public class IssuingCardholderController : ControllerBase
     {
-        private readonly IStripeRepository<IssuingCardholder> issuingCardholderRepository;
         private readonly IssuingCardholderFacade issuingCardholderFacade;
 
-        public IssuingCardholderController(
-            IStripeRepository<IssuingCardholder> issuingCardholderRepository,
-            IssuingCardholderFacade issuingCardholderFacade)
+        public IssuingCardholderController(IssuingCardholderFacade issuingCardholderFacade)
         {
-            this.issuingCardholderRepository = issuingCardholderRepository;
             this.issuingCardholderFacade = issuingCardholderFacade;
         }
         
         [HttpGet]
         [Route("{id}")]
-        public ActionResult<IssuingCardholder> GetIssuingCard(string id)
+        public ActionResult<IssuingCardholder> GetIssuingCardholder(string id)
         {
-            if (!this.issuingCardholderRepository.TryGet(id, out var cardholder))
+            try
             {
-                return this.NotFound();
+                var cardholder = this.issuingCardholderFacade.GetIssuingCardholder(id);
+                return this.Ok(cardholder);
             }
-
-            return cardholder;
+            catch (ArgumentException ex)
+            {
+                return this.NotFound(ex.Message);
+            }
         }
 
         [HttpPost]
         public async Task<ActionResult<Cardholder>> CreateIssuingCardholder(
-            [FromBody] CardholderCreateOptions cardholderCreateOptions)
+            [FromForm] CardholderCreateOptions cardholderCreateOptions)
         {
             var cardholder = 
                 await this.issuingCardholderFacade.CreateIssuingCardholder(cardholderCreateOptions);
@@ -47,19 +48,22 @@ namespace LocalStripeDotNet.Server.Controllers
         
         [HttpPost]
         [Route("{id}")]
-        public ActionResult<IssuingCardholder> UpdateIssuingCardholder(
+        public async Task<ActionResult<IssuingCardholder>> UpdateIssuingCardholder(
             string id,
-            [FromBody] CardholderUpdateOptions cardholderUpdateOptions)
+            [FromForm] CardholderUpdateOptions cardholderUpdateOptions)
         {
-            if (!this.issuingCardholderRepository.TryGet(id, out var cardholder))
+            try
             {
-                return this.NotFound();
+                var updatedCardholder =
+                    await this.issuingCardholderFacade.UpdateIssuingCardholder(id, cardholderUpdateOptions);
+
+                return this.Ok(updatedCardholder);
+            }
+            catch (ArgumentException ex)
+            {
+                return this.BadRequest(ex.Message);
             }
 
-            var updatedCardholder = cardholder.ToUpdatedCardholder(cardholderUpdateOptions);
-            this.issuingCardholderRepository.Update(updatedCardholder);
-
-            return this.Ok(updatedCardholder);
         }
     }
 }
